@@ -53,22 +53,93 @@ class AESApp:
 
 
     def generate_random_key(self):
-     #logic for generating the random key
-      return
-    def get_validated_key(self):
-     # logic for validating the key
-     return
-       
+        random_key = generate_random_key()  # This generates a hex string
+        self.key_entry.delete(0, 'end')
+        self.key_entry.insert(0, random_key)  # Show the hex string as it is
+        messagebox.showinfo("Random Key Generated", f"Generated Key: {random_key}")
 
+
+    def get_validated_key(self):      
+        key = self.key_entry.get()
+        # Check if the key is in hex format and convert it
+        try:
+            key_bytes = bytes.fromhex(key)
+        except ValueError:
+            # If it is not hex, we check if it's already 32 bytes long
+            if len(key) != 32:
+                messagebox.showerror("Error", "Key must be 32 bytes long (not hex).")
+                self.key_entry.focus()  # Ensure focus stays on the key entry
+                return None
+            key_bytes = key.encode('utf-8')  # Convert string to bytes
+        
+        # Ensure the key is exactly 32 bytes long
+        if len(key_bytes) != 32:
+            messagebox.showerror("Error", "Key must be 32 bytes long.")
+            self.key_entry.focus()  # Ensure focus stays on the key entry
+
+            return None
+        return key_bytes
+     
+     
     def encrypt_documents(self):
-      return
+       key_bytes = self.get_validated_key()
+       if not key_bytes:
+            return
+
+       file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt"), ("PDF files", "*.pdf")])
+       if file_path:
+            if file_path.endswith('.txt'):
+                encrypted_file = encrypt_document(key_bytes, file_path)  # Calling the correct AES function for documents
+            elif file_path.endswith('.pdf'):
+                encrypted_file = encrypt_document(key_bytes, file_path)  # Same as above
+            else:
+                messagebox.showerror("Error", "Unsupported file type.")
+                return
+            messagebox.showinfo("Success", f"File encrypted successfully!\nEncrypted file: {encrypted_file}")
+
     def decrypt_documents(self):
-     return
+       key_bytes = self.get_validated_key()
+       if not key_bytes:
+            return
+
+       file_path = filedialog.askopenfilename(filetypes=[("Encrypted text files", "*.enc"), ("Encrypted PDFs", "*.enc")])
+       if file_path:
+            if file_path.endswith('.txt.enc'):
+                decrypted_file = decrypt_document(key_bytes, file_path)  # Calling the correct AES function for documents
+            elif file_path.endswith('.pdf.enc'):
+                decrypted_file = decrypt_document(key_bytes, file_path)  # Same as above
+            else:
+                messagebox.showerror("Error", "Unsupported file type.")
+                return
+            messagebox.showinfo("Success", f"File decrypted successfully!\nDecrypted file: {decrypted_file}")
 
     def encrypt_media(self):
-     return
+       key_bytes = self.get_validated_key()
+       if not key_bytes:
+            return
+
+       file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg;*.bmp;*.gif"), ("Video files", "*.mp4;*.avi;*.mkv")])
+       if file_path:
+            if file_path.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                encrypted_file = encrypt_media(key_bytes, file_path)  # Calling the correct AES function for media
+            elif file_path.endswith(('.mp4', '.avi', '.mkv')):
+                encrypted_file = encrypt_media(key_bytes, file_path)  # Same function for videos
+            else:
+                messagebox.showerror("Error", "Unsupported media type.")
+                return
+            messagebox.showinfo("Success", f"Media encrypted successfully!\nEncrypted file: {encrypted_file}")
+   
+   
     def decrypt_media(self):
-      return
+        key_bytes = self.get_validated_key()
+        if not key_bytes:
+            return
+
+        file_path = filedialog.askopenfilename(filetypes=[("Encrypted media files", "*.enc")])
+        if file_path:
+            decrypted_file = decrypt_media(key_bytes, file_path)  # Calling the correct AES function for media
+            messagebox.showinfo("Success", f"Media decrypted successfully!\nDecrypted file: {decrypted_file}")
+
 
 if __name__ == "__main__":
     app = ctk.CTk()
